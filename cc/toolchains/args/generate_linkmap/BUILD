@@ -13,6 +13,9 @@ cc_args(
     name = "generate_linkmap",
     actions = ["//cc/toolchains/actions:link_actions"],
     args = select({
+        "//cc/toolchains/impl:windows_x86_64": ["/MAP:{output_execpath}.map"],
+        "//cc/toolchains/impl:windows_x86_32": ["/MAP:{output_execpath}.map"],
+        "//cc/toolchains/impl:windows_aarch64": ["/MAP:{output_execpath}.map"],
         "@platforms//os:macos": ["-Wl,-map,{output_execpath}.map"],
         "//conditions:default": ["-Wl,-Map={output_execpath}.map"],
     }),

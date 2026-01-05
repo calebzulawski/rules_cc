@@ -1,6 +1,7 @@
-load("//cc/toolchains:args.bzl", "cc_args")
+load("//cc/toolchains:args_list.bzl", "cc_args_list")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
+load("//cc/toolchains/impl:args_for_compiler.bzl", "cc_args_for_compiler")
 load("//cc/toolchains/args/libraries_to_link/private:library_link_args.bzl", "library_link_args")
 
 package(default_visibility = ["//visibility:private"])
@@ -12,14 +13,39 @@ cc_feature(
     visibility = ["//visibility:public"],
 )
 
-cc_args(
+cc_args_list(
     name = "libraries_to_link",
-    actions = ["//cc/toolchains/actions:link_actions"],
-    nested = [
-        ":thinlto_param_file",
-        ":libraries_to_link_args",
+    args = [
+        ":libraries_to_link_generic",
+        ":libraries_to_link_windows",
     ],
     visibility = ["//visibility:public"],
+)
+
+cc_args_for_compiler(
+    name = "libraries_to_link_generic",
+    actions = ["//cc/toolchains/actions:link_actions"],
+    exclude_compilers = [
+        "msvc-cl",
+        "clang-cl",
+    ],
+    nested = [
+        ":thinlto_param_file",
+        ":libraries_to_link_args_generic",
+    ],
+)
+
+cc_args_for_compiler(
+    name = "libraries_to_link_windows",
+    actions = ["//cc/toolchains/actions:link_actions"],
+    compilers = [
+        "msvc-cl",
+        "clang-cl",
+    ],
+    nested = [
+        ":thinlto_param_file",
+        ":libraries_to_link_args_windows",
+    ],
 )
 
 cc_nested_args(
@@ -32,18 +58,32 @@ cc_nested_args(
 )
 
 cc_nested_args(
-    name = "libraries_to_link_args",
-    nested = [":iterate_over_libraries_to_link"],
+    name = "libraries_to_link_args_generic",
+    nested = [":iterate_over_libraries_to_link_generic"],
     requires_not_none = "//cc/toolchains/variables:libraries_to_link",
 )
 
 cc_nested_args(
-    name = "iterate_over_libraries_to_link",
+    name = "iterate_over_libraries_to_link_generic",
     iterate_over = "//cc/toolchains/variables:libraries_to_link",
     nested = [
         ":optional_object_file_group_start",
-        ":single_library_args",
+        ":single_library_args_generic",
         ":optional_object_file_group_end",
+    ],
+)
+
+cc_nested_args(
+    name = "libraries_to_link_args_windows",
+    nested = [":iterate_over_libraries_to_link_windows"],
+    requires_not_none = "//cc/toolchains/variables:libraries_to_link",
+)
+
+cc_nested_args(
+    name = "iterate_over_libraries_to_link_windows",
+    iterate_over = "//cc/toolchains/variables:libraries_to_link",
+    nested = [
+        ":single_library_args_windows",
     ],
 )
 
@@ -74,28 +114,102 @@ cc_nested_args(
 )
 
 cc_nested_args(
-    name = "single_library_args",
+    name = "single_library_args_generic",
     nested = select({
         "@platforms//os:macos": [],
-        "@platforms//os:windows": [],
         "//conditions:default": [":optional_whole_archive_start"],
+    }) + select({
+        "@platforms//os:macos": [
+            ":macos_optional_object_file_group",
+            ":macos_optional_object_file",
+            ":macos_optional_interface_library",
+            ":macos_optional_static_library",
+        ],
+        "//conditions:default": [
+            ":generic_optional_object_file_group",
+            ":generic_optional_object_file",
+            ":generic_optional_interface_library",
+            ":generic_optional_static_library",
+        ],
     }) + [
-        ":optional_object_file_group",
-        ":optional_object_file",
-        ":optional_interface_library",
-        ":optional_static_library",
         ":optional_dynamic_library",
     ] + select({
         # macOS has a minor nuance where it uses the path to the library instead of `-l:{library_name}`.
         "@platforms//os:macos": [":macos_optional_versioned_dynamic_library"],
-        # Windows references the interface library (if.lib) rather than the dynamic library (dll)
-        "@platforms//os:windows": [],
         "//conditions:default": [":generic_optional_versioned_dynamic_library"],
     }) + select({
         "@platforms//os:macos": [],
-        "@platforms//os:windows": [],
         "//conditions:default": [":optional_whole_archive_end"],
     }),
+)
+
+cc_nested_args(
+    name = "single_library_args_windows",
+    nested = [
+        ":windows_optional_object_file_group",
+        ":windows_optional_object_file",
+        ":windows_optional_interface_library",
+        ":windows_optional_static_library",
+    ],
+)
+
+cc_nested_args(
+    name = "windows_optional_object_file_group",
+    requires_equal = "//cc/toolchains/variables:libraries_to_link.type",
+    requires_equal_value = "object_file_group",
+    iterate_over = "//cc/toolchains/variables:libraries_to_link.object_files",
+    args = ["{library}"],
+    format = {
+        "library": "//cc/toolchains/variables:libraries_to_link.object_files",
+    },
+)
+
+cc_nested_args(
+    name = "windows_optional_object_file",
+    requires_equal = "//cc/toolchains/variables:libraries_to_link.type",
+    requires_equal_value = "object_file",
+    args = ["{library}"],
+    format = {
+        "library": "//cc/toolchains/variables:libraries_to_link.name",
+    },
+)
+
+cc_nested_args(
+    name = "windows_optional_interface_library",
+    requires_equal = "//cc/toolchains/variables:libraries_to_link.type",
+    requires_equal_value = "interface_library",
+    args = ["{library}"],
+    format = {
+        "library": "//cc/toolchains/variables:libraries_to_link.name",
+    },
+)
+
+cc_nested_args(
+    name = "windows_optional_static_library",
+    requires_equal = "//cc/toolchains/variables:libraries_to_link.type",
+    requires_equal_value = "static_library",
+    nested = [
+        ":windows_static_library_whole_archive",
+        ":windows_static_library_no_whole_archive",
+    ],
+)
+
+cc_nested_args(
+    name = "windows_static_library_no_whole_archive",
+    requires_false = "//cc/toolchains/variables:libraries_to_link.is_whole_archive",
+    args = ["{library}"],
+    format = {
+        "library": "//cc/toolchains/variables:libraries_to_link.name",
+    },
+)
+
+cc_nested_args(
+    name = "windows_static_library_whole_archive",
+    requires_true = "//cc/toolchains/variables:libraries_to_link.is_whole_archive",
+    args = ["/WHOLEARCHIVE:{library}"],
+    format = {
+        "library": "//cc/toolchains/variables:libraries_to_link.name",
+    },
 )
 
 cc_nested_args(

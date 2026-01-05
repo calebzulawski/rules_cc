@@ -13,7 +13,7 @@
 # limitations under the License.
 """Helper functions to create and validate a ToolchainConfigInfo."""
 
-load("//cc/toolchains:cc_toolchain_info.bzl", "ArtifactNamePatternInfo", "MakeVariableInfo", "ToolConfigInfo", "ToolchainConfigInfo")
+load("//cc/toolchains:cc_toolchain_info.bzl", "ArtifactNamePatternInfo", "FeatureInfo", "MakeVariableInfo", "ToolConfigInfo", "ToolchainConfigInfo")
 load(":args_utils.bzl", "get_action_type")
 load(":collect.bzl", "collect_args_lists", "collect_features")
 
@@ -63,6 +63,9 @@ def _get_known_features(features, capability_features, fail):
     for ft in capability_features + features:
         if ft.name in feature_names:
             other = feature_names[ft.name]
+            # Skip duplicates from the same label (e.g. capabilities promoted to enabled features).
+            if other.label == ft.label:
+                continue
             if other.overrides != ft and ft.overrides != other:
                 fail(_FEATURE_NAME_ERR.format(
                     name = ft.name,
@@ -71,11 +74,17 @@ def _get_known_features(features, capability_features, fail):
                 ))
         feature_names[ft.name] = ft
 
-    return {_feature_key(feature): None for feature in features}
+    return {
+        _feature_key(feature): None
+        for feature in (features + capability_features)
+    }
+
+def _is_known_feature(feature, known_features):
+    return feature.external or _feature_key(feature) in known_features
 
 def _can_theoretically_be_enabled(requirement, known_features):
     return all([
-        _feature_key(ft) in known_features
+        _is_known_feature(ft, known_features)
         for ft in requirement
     ])
 
@@ -162,7 +171,7 @@ def _collect_make_variables(targets, fail):
 
     return make_variables.values()
 
-def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], artifact_name_patterns = [], make_variables = [], tool_map = None, fail = fail):
+def toolchain_config_info(label, known_features = [], enabled_features = [], args = [], artifact_name_patterns = [], make_variables = [], tool_map = None, compiler_feature = None, fail = fail):
     """Generates and validates a ToolchainConfigInfo from lists of labels.
 
     Args:
@@ -174,17 +183,11 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         artifact_name_patterns: (List[Target]) A list of targets providing ArtifactNamePatternInfo.
         make_variables: (List[Target]) A list of targets providing MakeVariableInfo.
         tool_map: (Target) A target providing ToolMapInfo.
+        compiler_feature: (Target) A target providing FeatureInfo.
         fail: A fail function. Use only during tests.
     Returns:
         A validated ToolchainConfigInfo
     """
-
-    # Later features will come after earlier features on the command-line, and
-    # thus override them. Because of this, we ensure that known_features comes
-    # *after* enabled_features, so that if we do enable them, they override the
-    # default feature flags.
-    features = collect_features(enabled_features + known_features).to_list()
-    enabled_features = collect_features(enabled_features).to_list()
 
     if tool_map == None:
         fail("tool_map is required")
@@ -195,6 +198,14 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
 
     args = collect_args_lists(args, label = label)
     tools = tool_map[ToolConfigInfo].configs
+    enabled_feature_targets = enabled_features
+    enabled_features = collect_features(enabled_feature_targets).to_list()
+
+    # Later features will come after earlier features on the command-line, and
+    # thus override them. Because of this, we ensure that known_features comes
+    # *after* enabled_features, so that if we do enable them, they override the
+    # default feature flags.
+    features = collect_features(enabled_feature_targets + known_features).to_list()
     files = {
         action_type: _collect_files_for_action_type(action_type, tools, features, args)
         for action_type in tools.keys()
@@ -222,6 +233,7 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         allowlist_absolute_include_directories = allowlist_absolute_include_directories,
         artifact_name_patterns = _collect_artifact_name_patterns(artifact_name_patterns, fail),
         make_variables = _collect_make_variables(make_variables, fail),
+        compiler_feature = compiler_feature[FeatureInfo],
     )
     _validate_toolchain(toolchain_config, fail = fail)
     return toolchain_config

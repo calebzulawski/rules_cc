@@ -47,6 +47,40 @@ http_archive(
 )
 
 http_archive(
+    name = "clang-windows-x86_64",
+    build_file = "//toolchains/clang_cl:clang.BUILD",
+    type = "zip",
+    url = "https://chrome-infra-packages.appspot.com/dl/fuchsia/third_party/clang/windows-amd64/+/git_revision%3A0cfd03ac0d3f9713090a581bda07584754c73a49",
+)
+
+http_archive(
+    name = "clang-windows-aarch64",
+    build_file = "//toolchains/clang_cl:clang.BUILD",
+    type = "zip",
+    url = "https://chrome-infra-packages.appspot.com/dl/fuchsia/third_party/clang/windows-arm64/+/git_revision%3A0cfd03ac0d3f9713090a581bda07584754c73a49",
+)
+
+windows_include_paths = use_repo_rule("//toolchains/windows:include_paths.bzl", "windows_include_paths")
+windows_lib_paths = use_repo_rule("//toolchains/windows:lib_paths.bzl", "windows_lib_paths")
+windows_msvc_path = use_repo_rule("//toolchains/windows:msvc_path.bzl", "windows_msvc_path")
+windows_msvc_tools = use_repo_rule("//toolchains/windows:msvc_tools.bzl", "windows_msvc_tools")
+
+windows_include_paths(
+    name = "windows_include_paths",
+    clang_resource_header_x86_64 = "@clang-windows-x86_64//:lib/clang/19/include/stddef.h",
+    clang_resource_header_aarch64 = "@clang-windows-aarch64//:lib/clang/19/include/stddef.h",
+)
+windows_lib_paths(
+    name = "windows_lib_paths",
+)
+windows_msvc_path(
+    name = "windows_msvc_path",
+)
+windows_msvc_tools(
+    name = "windows_msvc_tools",
+)
+
+http_archive(
     name = "linux_sysroot",
     build_file = "//toolchains/clang:linux_sysroot.BUILD",
     sha256 = "f45ca0d8b46810b94d2a7dbc65f9092337d6a9568b260b51173a5ab9314da25e",

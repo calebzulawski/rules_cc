@@ -3,6 +3,7 @@ load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains:args_list.bzl", "cc_args_list")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
+load("//cc/toolchains/impl:args_for_compiler.bzl", "cc_args_for_compiler")
 
 package(default_visibility = ["//visibility:private"])
 
@@ -30,15 +31,22 @@ cc_args_list(
     name = "archiver_flags",
     args = [
         ":create_static_archive",
+        ":create_static_archive_windows",
+        "//cc/toolchains/args/windows:windows_machine_archive_flags",
         ":output_execpath",
+        ":output_execpath_windows",
         ":libraries_to_link",
     ],
     visibility = ["//visibility:public"],
 )
 
-cc_args(
+cc_args_for_compiler(
     name = "create_static_archive",
     actions = ["//cc/toolchains/actions:ar_actions"],
+    exclude_compilers = [
+        "msvc-cl",
+        "clang-cl",
+    ],
     args = select({
         ":use_libtool_on_macos_setting": [
             "-D",
@@ -50,13 +58,40 @@ cc_args(
     requires_not_none = "//cc/toolchains/variables:output_execpath",
 )
 
-cc_args(
+cc_args_for_compiler(
+    name = "create_static_archive_windows",
+    actions = ["//cc/toolchains/actions:ar_actions"],
+    compilers = [
+        "msvc-cl",
+        "clang-cl",
+    ],
+    args = [],
+    requires_not_none = "//cc/toolchains/variables:output_execpath",
+)
+
+cc_args_for_compiler(
     name = "output_execpath",
     actions = ["//cc/toolchains/actions:ar_actions"],
+    exclude_compilers = [
+        "msvc-cl",
+        "clang-cl",
+    ],
     args = select({
         ":use_libtool_on_macos_setting": ["-o"],
         "//conditions:default": [],
     }) + ["{output_execpath}"],
+    format = {"output_execpath": "//cc/toolchains/variables:output_execpath"},
+    requires_not_none = "//cc/toolchains/variables:output_execpath",
+)
+
+cc_args_for_compiler(
+    name = "output_execpath_windows",
+    actions = ["//cc/toolchains/actions:ar_actions"],
+    compilers = [
+        "msvc-cl",
+        "clang-cl",
+    ],
+    args = ["/OUT:{output_execpath}"],
     format = {"output_execpath": "//cc/toolchains/variables:output_execpath"},
     requires_not_none = "//cc/toolchains/variables:output_execpath",
 )

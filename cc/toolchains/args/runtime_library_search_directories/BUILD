@@ -3,15 +3,13 @@ load("//cc/toolchains:args_list.bzl", "cc_args_list")
 load("//cc/toolchains:feature.bzl", "cc_feature")
 load("//cc/toolchains:feature_constraint.bzl", "cc_feature_constraint")
 load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
+load("//cc/toolchains/impl:args_for_compiler.bzl", "cc_args_for_compiler")
 
 package(default_visibility = ["//visibility:private"])
 
 cc_feature(
     name = "feature",
-    args = select({
-        "@platforms//os:windows": [],
-        "//conditions:default": [":runtime_library_search_directories"],
-    }),
+    args = [":runtime_library_search_directories"],
     overrides = "//cc/toolchains/features/legacy:runtime_library_search_directories",
     visibility = ["//visibility:public"],
 )
@@ -41,9 +39,13 @@ cc_args_list(
     visibility = ["//visibility:public"],
 )
 
-cc_args(
+cc_args_for_compiler(
     name = "runtime_library_search_directories_static_runtimes_args",
     actions = ["//cc/toolchains/actions:link_actions"],
+    exclude_compilers = [
+        "msvc-cl",
+        "clang-cl",
+    ],
     nested = [":iterate_over_search_dirs"],
     requires_any_of = [":static_link_cpp_runtimes_enabled"],
     requires_not_none = "//cc/toolchains/variables:runtime_library_search_directories",
@@ -92,9 +94,13 @@ cc_nested_args(
 # TODO: b/27153401 - runtime_library_search_directories_args and
 # search_dir_args are all we need to keep if the workaround is no
 # longer required.
-cc_args(
+cc_args_for_compiler(
     name = "runtime_library_search_directories_args",
     actions = ["//cc/toolchains/actions:link_actions"],
+    exclude_compilers = [
+        "msvc-cl",
+        "clang-cl",
+    ],
     nested = [":search_dir_args"],
     # Remove the requires_any_of here if the workaround for b/27153401 is no
     # longer required.
