@@ -179,6 +179,13 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
         A validated ToolchainConfigInfo
     """
 
+    # Later features will come after earlier features on the command-line, and
+    # thus override them. Because of this, we ensure that known_features comes
+    # *after* enabled_features, so that if we do enable them, they override the
+    # default feature flags.
+    features = collect_features(enabled_features + known_features).to_list()
+    enabled_features = collect_features(enabled_features).to_list()
+
     if tool_map == None:
         fail("tool_map is required")
 
@@ -188,14 +195,6 @@ def toolchain_config_info(label, known_features = [], enabled_features = [], arg
 
     args = collect_args_lists(args, label = label)
     tools = tool_map[ToolConfigInfo].configs
-    enabled_feature_targets = enabled_features
-    enabled_features = collect_features(enabled_feature_targets).to_list()
-
-    # Later features will come after earlier features on the command-line, and
-    # thus override them. Because of this, we ensure that known_features comes
-    # *after* enabled_features, so that if we do enable them, they override the
-    # default feature flags.
-    features = collect_features(enabled_feature_targets + known_features).to_list()
     files = {
         action_type: _collect_files_for_action_type(action_type, tools, features, args)
         for action_type in tools.keys()
