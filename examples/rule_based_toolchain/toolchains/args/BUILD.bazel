@@ -14,9 +14,7 @@
 
 load("@rules_cc//cc/toolchains:args.bzl", "cc_args")
 load("@rules_cc//cc/toolchains:args_list.bzl", "cc_args_list")
-load("@windows_include_paths//:include_paths.bzl", "INCLUDE_PATHS")
-load("@windows_lib_paths//:lib_paths.bzl", "LIB_PATHS")
-load("@windows_msvc_path//:msvc_path.bzl", "MSVC_PATH")
+load("@windows_msvc_paths//:paths.bzl", "INCLUDE_PATHS", "LIB_PATHS", "MSVC_PATH")
 
 cc_args_list(
     name = "warnings",

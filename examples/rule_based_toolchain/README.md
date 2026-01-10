@@ -18,10 +18,7 @@ By default, it will build with `clang`. To use `gcc`, try the following command:
 $ bazel test --config=gcc //...
 ```
 
-On Windows, you can select `msvc-cl` or `clang-cl`. For `msvc-cl`, the MSVC
-tools must be available on `PATH` (for example, from a Visual Studio Developer
-Command Prompt). The `clang-cl` toolchain uses the prebuilt clang archive
-referenced in `examples/rule_based_toolchain/MODULE.bazel`.
+On Windows, you can use MSVC's `cl.exe` or `clang-cl.exe`:
 
 ```
 $ bazel test --config=msvc-cl //...

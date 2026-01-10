@@ -1,4 +1,4 @@
-"""Repository rule to expose MSVC tools as files for direct invocation."""
+"""Repository rule to expose MSVC tools."""
 
 def _windows_msvc_tools_impl(repository_ctx):
     include_env = repository_ctx.os.environ.get("INCLUDE", "")
