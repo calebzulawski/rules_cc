@@ -63,9 +63,6 @@ def _get_known_features(features, capability_features, fail):
     for ft in capability_features + features:
         if ft.name in feature_names:
             other = feature_names[ft.name]
-            # Skip duplicates from the same label (e.g. capabilities promoted to enabled features).
-            if other.label == ft.label:
-                continue
             if other.overrides != ft and ft.overrides != other:
                 fail(_FEATURE_NAME_ERR.format(
                     name = ft.name,
@@ -73,18 +70,11 @@ def _get_known_features(features, capability_features, fail):
                     rhs = other.label,
                 ))
         feature_names[ft.name] = ft
-
-    return {
-        _feature_key(feature): None
-        for feature in (features + capability_features)
-    }
-
-def _is_known_feature(feature, known_features):
-    return feature.external or _feature_key(feature) in known_features
+    return {_feature_key(feature): None for feature in features}
 
 def _can_theoretically_be_enabled(requirement, known_features):
     return all([
-        _is_known_feature(ft, known_features)
+        _feature_key(ft) in known_features
         for ft in requirement
     ])
 
