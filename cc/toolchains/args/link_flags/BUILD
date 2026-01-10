@@ -53,7 +53,6 @@ cc_feature(
     args = [
         ":output_link_flags",
         ":output_link_flags_windows",
-        "//cc/toolchains/args/windows:windows_machine_link_flags",
     ],
     overrides = "//cc/toolchains/features/legacy:output_execpath_flags",
 )

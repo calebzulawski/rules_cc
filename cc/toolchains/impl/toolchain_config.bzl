@@ -55,7 +55,6 @@ def _compiler_feature(ctx):
         t.label.name: t
         for t in ctx.attr._all_compiler_features
     }
-    # Default to gcc to match previous behavior.
     return features.get(ctx.attr.compiler, features.get("gcc"))
 
 def _cc_toolchain_config_impl(ctx):

@@ -3,18 +3,6 @@ load("//cc/toolchains/impl:args_for_compiler.bzl", "cc_args_for_compiler")
 
 package(default_visibility = ["//visibility:public"])
 
-WINDOWS_PREPROCESSOR_DEFINES_ACTIONS = [
-    "//cc/toolchains/actions:assemble",
-    "//cc/toolchains/actions:preprocess_assemble",
-    "//cc/toolchains/actions:c_compile",
-    "//cc/toolchains/actions:linkstamp_compile",
-    "//cc/toolchains/actions:cpp_compile",
-    "//cc/toolchains/actions:cpp_header_parsing",
-    "//cc/toolchains/actions:cpp_module_compile",
-    "//cc/toolchains/actions:cpp_module_deps_scanning",
-    "//cc/toolchains/actions:cpp20_module_compile",
-]
-
 cc_feature(
     name = "feature",
     args = [
@@ -38,7 +26,17 @@ cc_args_for_compiler(
 
 cc_args_for_compiler(
     name = "preprocessor_defines_windows",
-    actions = WINDOWS_PREPROCESSOR_DEFINES_ACTIONS,
+    actions = [
+        "//cc/toolchains/actions:assemble",
+        "//cc/toolchains/actions:preprocess_assemble",
+        "//cc/toolchains/actions:c_compile",
+        "//cc/toolchains/actions:linkstamp_compile",
+        "//cc/toolchains/actions:cpp_compile",
+        "//cc/toolchains/actions:cpp_header_parsing",
+        "//cc/toolchains/actions:cpp_module_compile",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+        "//cc/toolchains/actions:cpp20_module_compile",
+    ],
     compilers = [
         "msvc-cl",
         "clang-cl",

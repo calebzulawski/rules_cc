@@ -32,7 +32,6 @@ cc_args_list(
     args = [
         ":create_static_archive",
         ":create_static_archive_windows",
-        "//cc/toolchains/args/windows:windows_machine_archive_flags",
         ":output_execpath",
         ":output_execpath_windows",
         ":libraries_to_link",

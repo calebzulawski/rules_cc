@@ -1,20 +1,5 @@
-load("//cc/toolchains:args.bzl", "cc_args")
 load("//cc/toolchains/impl:args_for_compiler.bzl", "cc_args_for_compiler")
 load("//cc/toolchains:nested_args.bzl", "cc_nested_args")
-
-WINDOWS_EXTERNAL_INCLUDE_ACTIONS = [
-    "//cc/toolchains/actions:preprocess_assemble",
-    "//cc/toolchains/actions:linkstamp_compile",
-    "//cc/toolchains/actions:c_compile",
-    "//cc/toolchains/actions:cpp_compile",
-    "//cc/toolchains/actions:cpp_header_parsing",
-    "//cc/toolchains/actions:cpp_module_compile",
-    "//cc/toolchains/actions:cpp_module_deps_scanning",
-    "//cc/toolchains/actions:cpp20_module_compile",
-    "//cc/toolchains/actions:clif_match",
-    "//cc/toolchains/actions:objc_compile",
-    "//cc/toolchains/actions:objcpp_compile",
-]
 
 cc_args_for_compiler(
     name = "external_include_paths",
@@ -30,7 +15,19 @@ cc_args_for_compiler(
 
 cc_args_for_compiler(
     name = "external_include_paths_windows",
-    actions = WINDOWS_EXTERNAL_INCLUDE_ACTIONS,
+    actions = [
+        "//cc/toolchains/actions:preprocess_assemble",
+        "//cc/toolchains/actions:linkstamp_compile",
+        "//cc/toolchains/actions:c_compile",
+        "//cc/toolchains/actions:cpp_compile",
+        "//cc/toolchains/actions:cpp_header_parsing",
+        "//cc/toolchains/actions:cpp_module_compile",
+        "//cc/toolchains/actions:cpp_module_deps_scanning",
+        "//cc/toolchains/actions:cpp20_module_compile",
+        "//cc/toolchains/actions:clif_match",
+        "//cc/toolchains/actions:objc_compile",
+        "//cc/toolchains/actions:objcpp_compile",
+    ],
     compilers = [
         "msvc-cl",
         "clang-cl",

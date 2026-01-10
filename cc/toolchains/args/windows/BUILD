@@ -733,20 +733,17 @@ cc_args_for_compiler(
     requires_any_of = [":msvcrt_dbg"],
 )
 
-cc_args(
-    name = "windows_machine_archive_flags",
-    actions = ["//cc/toolchains/actions:ar_actions"],
-    args = select({
-        "//cc/toolchains/impl:windows_x86_64": ["/MACHINE:X64"],
-        "//cc/toolchains/impl:windows_x86_32": ["/MACHINE:X86"],
-        "//cc/toolchains/impl:windows_aarch64": ["/MACHINE:ARM64"],
-        "//conditions:default": [],
-    }),
+cc_feature(
+    name = "windows_machine_flags_feature",
+    feature_name = "windows_machine_flags",
+    args = [":windows_machine_flags"],
+    visibility = ["//visibility:public"],
 )
 
 cc_args(
-    name = "windows_machine_link_flags",
+    name = "windows_machine_flags",
     actions = [
+        "//cc/toolchains/actions:ar_actions",
         "//cc/toolchains/actions:cpp_link_executable",
         "//cc/toolchains/actions:cpp_link_dynamic_library",
         "//cc/toolchains/actions:cpp_link_nodeps_dynamic_library",
@@ -757,12 +754,4 @@ cc_args(
         "//cc/toolchains/impl:windows_aarch64": ["/MACHINE:ARM64"],
         "//conditions:default": [],
     }),
-)
-
-cc_args_list(
-    name = "windows_machine_flags",
-    args = [
-        ":windows_machine_archive_flags",
-        ":windows_machine_link_flags",
-    ],
 )
