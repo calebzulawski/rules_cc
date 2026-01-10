@@ -14,6 +14,7 @@ compare_feature_implementation(
     actual_implementation = "//cc/toolchains/args/archiver_flags",
     expected = select({
         "@platforms//os:macos": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/macos/archiver_flags.textproto",
+        "@platforms//os:windows": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/windows/archiver_flags.textproto",
         "//conditions:default": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/archiver_flags.textproto",
     }),
 )
@@ -32,7 +33,6 @@ compare_feature_implementation(
     actual_implementation = "//cc/toolchains/args/libraries_to_link",
     expected = select({
         "@platforms//os:macos": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/macos/libraries_to_link.textproto",
-        "@platforms//os:windows": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/windows/libraries_to_link.textproto",
         "//conditions:default": "//tests/rule_based_toolchain/legacy_features_as_args:goldens/unix/libraries_to_link.textproto",
     }),
 )

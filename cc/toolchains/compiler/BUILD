@@ -1,6 +1,6 @@
 load("//cc/toolchains:feature.bzl", "cc_feature")
 
-package(default_visibility = ["//cc/toolchains:__subpackages__"])
+package(default_visibility = ["//visibility:public"])
 
 cc_feature(
     name = "clang",
